@@ -28,7 +28,7 @@ export default function LandingPage() {
             <Button className="w-full sm:w-48 text-lg py-6 rounded-xl">Get Started</Button>
           </Link>
           <Link href="/auth/login" className="w-full sm:w-auto">
-            <Button variant="outline" className="w-full sm:w-48 text-lg py-6 rounded-xl border-espresso/10 hover:bg-espresso/5">
+            <Button variant="ghost" className="w-full sm:w-48 text-lg py-6 rounded-xl border-espresso/10 hover:bg-espresso/5">
               Sign In
             </Button>
           </Link>
