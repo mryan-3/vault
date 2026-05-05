@@ -1,46 +1,72 @@
 "use client";
 
-import { runIntegrationTest } from "@/lib/integration-test";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { Sidebar } from "@/components/chat/sidebar";
+import { ChatWindow } from "@/components/chat/chat-window";
+import { chatService } from "@/services/chat";
+import { useWebSocket } from "@/hooks/use-web-socket";
+import { Conversation, Message } from "@/types/chat";
+import AuthGuard from "@/components/auth-guard";
 
-export default function Home() {
-  const [testResult, setTestResult] = useState<string | null>(null);
-  const [isRunning, setIsRunning] = useState(false);
+export default function DashboardPage() {
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
+  const [incomingMessage, setIncomingMessage] = useState<Message | null>(null);
 
-  const startTest = async () => {
-    setIsRunning(true);
-    setTestResult("Running test...");
-    const success = await runIntegrationTest();
-    setTestResult(success ? "TEST PASSED! Check console for details." : "TEST FAILED! Check console for details.");
-    setIsRunning(false);
+  const loadConversations = useCallback(async () => {
+    try {
+      const data = await chatService.getConversations();
+      setConversations(data);
+    } catch (err) {
+      console.error("Failed to load conversations", err);
+    }
+  }, []);
+
+  const { send } = useWebSocket(useCallback((event) => {
+    if (event.event === "message.receive") {
+      setIncomingMessage(event as unknown as Message);
+      loadConversations();
+    }
+  }, [loadConversations]));
+
+  useEffect(() => {
+    loadConversations();
+  }, [loadConversations]);
+
+  const handleNewMessage = () => {
+    loadConversations();
+  };
+
+  const handleNewChat = (user: any) => {
+    setSelectedChatId(user.id);
+    if (!conversations.find(c => c.user_id === user.id)) {
+      setConversations(prev => [{
+        user_id: user.id,
+        username: user.username,
+        display_name: user.display_name,
+        last_message_at: new Date().toISOString()
+      }, ...prev]);
+    }
   };
 
   return (
-    <div className="flex flex-col flex-1 items-center justify-center min-h-screen bg-white font-sans text-black">
-      <main className="flex flex-col items-center gap-8 p-8 max-w-2xl text-center">
-        <h1 className="text-4xl font-bold tracking-tight">Vault E2EE Engine Test</h1>
-        <p className="text-lg text-zinc-600">
-          This page allows you to verify the cryptographic and API integration before we build the full UI.
-        </p>
-        
-        <button 
-          onClick={startTest}
-          disabled={isRunning}
-          className="px-8 py-3 bg-black text-white rounded-full font-medium hover:bg-zinc-800 disabled:bg-zinc-400 transition-all"
-        >
-          {isRunning ? "Testing..." : "Run Engine Integration Test"}
-        </button>
-
-        {testResult && (
-          <div className={`p-4 rounded-lg border ${testResult.includes("PASSED") ? "bg-green-50 border-green-200 text-green-800" : "bg-red-50 border-red-200 text-red-800"}`}>
-            {testResult}
-          </div>
-        )}
-
-        <div className="mt-8 text-sm text-zinc-400">
-          Open the browser console (F12) to see the step-by-step logs.
-        </div>
-      </main>
-    </div>
+    <AuthGuard>
+      <div className="flex h-screen overflow-hidden bg-cream font-sans selection:bg-crimson/10 selection:text-crimson">
+        <Sidebar 
+          conversations={conversations} 
+          selectedChatId={selectedChatId || undefined} 
+          onSelectChat={setSelectedChatId}
+          onNewChat={handleNewChat}
+        />
+        <main className="flex-1 overflow-hidden">
+          <ChatWindow 
+            recipientId={selectedChatId} 
+            onNewMessage={handleNewMessage}
+            incomingMessage={incomingMessage}
+            onSend={send}
+          />
+        </main>
+      </div>
+    </AuthGuard>
   );
 }

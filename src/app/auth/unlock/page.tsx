@@ -12,7 +12,7 @@ export default function UnlockPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const { user, updatePrivateKey, isAuthenticated } = useAuth();
+  const { user, updatePrivateKey, isAuthenticated, setSession } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -26,7 +26,13 @@ export default function UnlockPage() {
     setError("");
     try {
       const privateKey = await authService.unlock(user, password);
-      updatePrivateKey(privateKey);
+      // We need to update the session with the password
+      const token = localStorage.getItem("wb_access_token");
+      if (token) {
+        await setSession(user, token, privateKey, password);
+      } else {
+        updatePrivateKey(privateKey);
+      }
       router.push("/");
     } catch (err: any) {
       setError("Incorrect master password");

@@ -7,12 +7,18 @@ export function useWebSocket(onEvent: (event: WSEvent) => void) {
   const [isConnected, setIsConnected] = useState(false);
   const ws = useRef<WebSocket | null>(null);
   const reconnectTimeout = useRef<NodeJS.Timeout | null>(null);
+  const onEventRef = useRef(onEvent);
+
+  // Update the ref every render so the latest callback is used without triggering reconnects
+  useEffect(() => {
+    onEventRef.current = onEvent;
+  }, [onEvent]);
 
   const connect = useCallback(() => {
     const token = localStorage.getItem("wb_access_token");
     if (!token) return;
 
-    if (ws.current?.readyState === WebSocket.OPEN) return;
+    if (ws.current?.readyState === WebSocket.OPEN || ws.current?.readyState === WebSocket.CONNECTING) return;
 
     const socket = new WebSocket(`${WS_URL}?token=${token}`);
 
@@ -25,17 +31,19 @@ export function useWebSocket(onEvent: (event: WSEvent) => void) {
     socket.onmessage = (event) => {
       try {
         const data: WSEvent = JSON.parse(event.data);
-        onEvent(data);
+        onEventRef.current(data); // Use the ref
       } catch (err) {
         console.error("WS Parse Error", err);
       }
     };
 
-    socket.onclose = () => {
-      console.log("WS Disconnected");
+    socket.onclose = (e) => {
+      console.log(`WS Closed: ${e.code} ${e.reason}`);
       setIsConnected(false);
-      // Attempt reconnect after 3 seconds
-      reconnectTimeout.current = setTimeout(connect, 3000);
+      // Attempt reconnect after 3 seconds if not intentionally closed
+      if (e.code !== 1000) {
+        reconnectTimeout.current = setTimeout(connect, 3000);
+      }
     };
 
     socket.onerror = (err) => {
@@ -43,7 +51,7 @@ export function useWebSocket(onEvent: (event: WSEvent) => void) {
     };
 
     ws.current = socket;
-  }, [onEvent]);
+  }, []); // No dependencies, connect logic is stable
 
   const send = useCallback((event: WSOutgoingEvent) => {
     if (ws.current?.readyState === WebSocket.OPEN) {
@@ -57,8 +65,9 @@ export function useWebSocket(onEvent: (event: WSEvent) => void) {
     connect();
     return () => {
       if (ws.current) {
-        ws.current.onclose = null; // Prevent reconnect on intentional unmount
-        ws.current.close();
+        const socket = ws.current;
+        socket.onclose = null; // Prevent reconnect on unmount
+        socket.close(1000);
       }
       if (reconnectTimeout.current) clearTimeout(reconnectTimeout.current);
     };

@@ -5,10 +5,11 @@ import { User, AuthState } from "@/types/auth";
 import { set, get, del } from "idb-keyval";
 
 interface AuthContextType extends AuthState {
-  setSession: (user: User, token: string, privateKey: CryptoKey) => Promise<void>;
+  setSession: (user: User, token: string, privateKey: CryptoKey | null, password?: string) => Promise<void>;
   logout: () => void;
   updatePrivateKey: (key: CryptoKey) => void;
 }
+
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -26,26 +27,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const initAuth = async () => {
       const token = localStorage.getItem(TOKEN_KEY);
       const user = await get<User>("wb_user");
+      const savedPassword = sessionStorage.getItem("wb_vault_key");
 
       if (!token || !user) {
         setState((s) => ({ ...s, isLoading: false }));
         return;
       }
 
+      let privateKey: CryptoKey | null = null;
+      if (savedPassword) {
+        try {
+          const { authService } = await import("@/services/auth");
+          privateKey = await authService.unlock(user, savedPassword);
+        } catch (e) {
+          console.error("Auto-unlock failed", e);
+          sessionStorage.removeItem("wb_vault_key");
+        }
+      }
+
       setState({
         user,
         isAuthenticated: true,
         isLoading: false,
-        privateKey: null, // Still null until unlocked with password
+        privateKey,
       });
     };
 
     initAuth();
   }, []);
 
-  const setSession = async (user: User, token: string, privateKey: CryptoKey | null) => {
+  const setSession = async (user: User, token: string, privateKey: CryptoKey | null, password?: string) => {
     localStorage.setItem(TOKEN_KEY, token);
     await set("wb_user", user);
+    if (password) sessionStorage.setItem("wb_vault_key", password);
     
     setState({
       user,
@@ -57,6 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     localStorage.removeItem(TOKEN_KEY);
+    sessionStorage.removeItem("wb_vault_key");
     await del("wb_user");
     
     setState({
