@@ -1,46 +1,42 @@
-"use client";
+import Link from "next/link";
+import { Logo } from "@/components/ui/logo";
+import { Button } from "@/components/ui/button";
 
-import { runIntegrationTest } from "@/lib/integration-test";
-import { useState } from "react";
-
-export default function Home() {
-  const [testResult, setTestResult] = useState<string | null>(null);
-  const [isRunning, setIsRunning] = useState(false);
-
-  const startTest = async () => {
-    setIsRunning(true);
-    setTestResult("Running test...");
-    const success = await runIntegrationTest();
-    setTestResult(success ? "TEST PASSED! Check console for details." : "TEST FAILED! Check console for details.");
-    setIsRunning(false);
-  };
-
+export default function LandingPage() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center min-h-screen bg-white font-sans text-black">
-      <main className="flex flex-col items-center gap-8 p-8 max-w-2xl text-center">
-        <h1 className="text-4xl font-bold tracking-tight">Vault E2EE Engine Test</h1>
-        <p className="text-lg text-zinc-600">
-          This page allows you to verify the cryptographic and API integration before we build the full UI.
-        </p>
-        
-        <button 
-          onClick={startTest}
-          disabled={isRunning}
-          className="px-8 py-3 bg-black text-white rounded-full font-medium hover:bg-zinc-800 disabled:bg-zinc-400 transition-all"
-        >
-          {isRunning ? "Testing..." : "Run Engine Integration Test"}
-        </button>
-
-        {testResult && (
-          <div className={`p-4 rounded-lg border ${testResult.includes("PASSED") ? "bg-green-50 border-green-200 text-green-800" : "bg-red-50 border-red-200 text-red-800"}`}>
-            {testResult}
+    <div className="h-screen w-full bg-cream text-espresso flex flex-col items-center justify-center p-6 text-center overflow-hidden">
+      <div className="space-y-12 max-w-2xl animate-in fade-in slide-in-from-bottom-8 duration-1000">
+        <header className="flex flex-col items-center gap-6">
+          <div className="text-crimson">
+            <Logo size={64} />
           </div>
-        )}
+          <h1 className="text-2xl font-bold tracking-[0.2em] uppercase text-crimson/40">Vault</h1>
+        </header>
 
-        <div className="mt-8 text-sm text-zinc-400">
-          Open the browser console (F12) to see the step-by-step logs.
-        </div>
-      </main>
+        <main className="space-y-6">
+          <h2 className="text-7xl font-bold tracking-tight leading-[0.85] text-balance">
+            Where your secrets <br /> find a home.
+          </h2>
+          <p className="text-lg font-medium text-espresso/50 max-w-md mx-auto leading-relaxed">
+            End-to-end encrypted messaging designed for absolute digital sovereignty. 
+            Zero-knowledge security that keeps your conversations truly private.
+          </p>
+        </main>
+
+        <footer className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-8">
+          <Link href="/auth/register" className="w-full sm:w-auto">
+            <Button className="w-full sm:w-48 text-lg py-6 rounded-xl">Get Started</Button>
+          </Link>
+          <Link href="/auth/login" className="w-full sm:w-auto">
+            <Button variant="outline" className="w-full sm:w-48 text-lg py-6 rounded-xl border-espresso/10 hover:bg-espresso/5">
+              Sign In
+            </Button>
+          </Link>
+        </footer>
+      </div>
+      
+      {/* Background decoration - very subtle */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-crimson/5 rounded-full blur-[120px] -z-10 opacity-30" />
     </div>
   );
 }
