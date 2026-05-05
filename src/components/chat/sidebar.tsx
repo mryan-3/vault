@@ -18,7 +18,7 @@ export function Sidebar({ conversations, selectedChatId, onSelectChat, onNewChat
   const { user, logout } = useAuth();
 
   return (
-    <aside className="w-80 h-full border-r border-espresso/5 bg-cream p-6 flex flex-col">
+    <aside className="w-full h-full border-r border-espresso/5 bg-cream p-6 flex flex-col">
       <header className="flex items-center justify-between mb-12">
         <div className="flex items-center gap-3 text-crimson">
           <Logo size={32} />

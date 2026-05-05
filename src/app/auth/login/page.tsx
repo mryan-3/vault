@@ -24,7 +24,7 @@ export default function LoginPage() {
     try {
       const { data, privateKey } = await authService.login(username, password);
       await setSession(data.user, data.access_token, privateKey, password);
-      router.push("/");
+      router.push("/dashboard");
     } catch (err: any) {
       setError(err.message || "Invalid credentials");
     } finally {

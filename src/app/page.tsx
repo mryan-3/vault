@@ -14,7 +14,7 @@ export default function LandingPage() {
         </header>
 
         <main className="space-y-6">
-          <h2 className="text-7xl font-bold tracking-tight leading-[0.85] text-balance">
+          <h2 className="text-5xl md:text-7xl font-bold tracking-tight leading-[0.85] text-balance">
             Where your secrets <br /> find a home.
           </h2>
           <p className="text-lg font-medium text-espresso/50 max-w-md mx-auto leading-relaxed">

@@ -52,18 +52,21 @@ export default function DashboardPage() {
   return (
     <AuthGuard>
       <div className="flex h-screen overflow-hidden bg-cream font-sans selection:bg-crimson/10 selection:text-crimson">
-        <Sidebar 
-          conversations={conversations} 
-          selectedChatId={selectedChatId || undefined} 
-          onSelectChat={setSelectedChatId}
-          onNewChat={handleNewChat}
-        />
-        <main className="flex-1 overflow-hidden">
+        <div className={`${selectedChatId ? "hidden md:flex" : "flex w-full"} md:w-80 h-full shrink-0`}>
+          <Sidebar 
+            conversations={conversations} 
+            selectedChatId={selectedChatId || undefined} 
+            onSelectChat={setSelectedChatId}
+            onNewChat={handleNewChat}
+          />
+        </div>
+        <main className={`flex-1 overflow-hidden ${selectedChatId ? "flex" : "hidden md:flex"}`}>
           <ChatWindow 
             recipientId={selectedChatId} 
             onNewMessage={handleNewMessage}
             incomingMessage={incomingMessage}
             onSend={send}
+            onBack={() => setSelectedChatId(null)}
           />
         </main>
       </div>
