@@ -11,7 +11,6 @@ const RSA_ALGO = {
 };
 
 const AES_GCM_ALGO = "AES-GCM";
-const AES_KW_ALGO = "AES-KW";
 const PBKDF2_ALGO = "PBKDF2";
 
 // --- Helpers ---
@@ -40,7 +39,7 @@ export async function generateRSAKeyPair(): Promise<CryptoKeyPair> {
   );
 }
 
-// --- Key Wrapping (PBKDF2 + AES-KW) ---
+// --- Key Wrapping (PBKDF2 + AES-GCM) ---
 
 export async function deriveWrappingKey(password: string, salt: BufferSource): Promise<CryptoKey> {
   const enc = new TextEncoder();
@@ -60,29 +59,41 @@ export async function deriveWrappingKey(password: string, salt: BufferSource): P
       hash: "SHA-256",
     },
     passwordKey,
-    { name: AES_KW_ALGO, length: 256 },
+    { name: AES_GCM_ALGO, length: 256 },
     false,
     ["wrapKey", "unwrapKey"]
   );
 }
 
 export async function wrapPrivateKey(privateKey: CryptoKey, wrappingKey: CryptoKey): Promise<string> {
+  const iv = window.crypto.getRandomValues(new Uint8Array(12));
   const wrapped = await window.crypto.subtle.wrapKey(
     "pkcs8",
     privateKey,
     wrappingKey,
-    AES_KW_ALGO
+    { name: AES_GCM_ALGO, iv }
   );
-  return arrayBufferToBase64(wrapped);
+
+  // Combine IV and Wrapped Data: [IV (12 bytes)][Wrapped Data (...)]
+  const combined = new Uint8Array(iv.length + wrapped.byteLength);
+  combined.set(iv);
+  combined.set(new Uint8Array(wrapped), iv.length);
+
+  return arrayBufferToBase64(combined);
 }
 
 export async function unwrapPrivateKey(wrappedKeyBase64: string, wrappingKey: CryptoKey): Promise<CryptoKey> {
-  const wrappedBuffer = base64ToArrayBuffer(wrappedKeyBase64);
+  const combined = new Uint8Array(base64ToArrayBuffer(wrappedKeyBase64));
+  
+  // Extract IV (first 12 bytes) and the ciphertext
+  const iv = combined.slice(0, 12);
+  const wrappedData = combined.slice(12);
+
   return window.crypto.subtle.unwrapKey(
     "pkcs8",
-    wrappedBuffer,
+    wrappedData,
     wrappingKey,
-    AES_KW_ALGO,
+    { name: AES_GCM_ALGO, iv },
     RSA_ALGO,
     true,
     ["decrypt"]
