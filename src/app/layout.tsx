@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { Bricolage_Grotesque } from "next/font/google";
+import { Urbanist } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/auth-context";
 
-const bricolage = Bricolage_Grotesque({
+const urbanist = Urbanist({
   subsets: ["latin"],
-  variable: "--font-bricolage",
+  variable: "--font-urbanist",
 });
 
 export const metadata: Metadata = {
@@ -24,7 +24,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${bricolage.variable} font-sans antialiased`}>
+      <body className={`${urbanist.variable} font-sans antialiased`}>
         <AuthProvider>
           {children}
         </AuthProvider>
