@@ -8,10 +8,13 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Logo } from "@/components/ui/logo";
 
+import { useAuth } from "@/context/auth-context";
+
 export default function RegisterPage() {
   const [formData, setFormData] = useState({ username: "", displayName: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const { setSession } = useAuth();
   const router = useRouter();
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -20,7 +23,9 @@ export default function RegisterPage() {
     setError("");
     try {
       await authService.register(formData.username, formData.displayName, formData.password);
-      router.push("/auth/login");
+      const { data, privateKey } = await authService.login(formData.username, formData.password);
+      await setSession(data.user, data.access_token, privateKey, formData.password);
+      router.push("/dashboard");
     } catch (err: any) {
       setError(err.message || "Registration failed");
     } finally {

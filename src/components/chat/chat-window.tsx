@@ -7,7 +7,7 @@ import { encryptMessage, importPublicKey } from "@/lib/crypto";
 import { useAuth } from "@/context/auth-context";
 import { MessageBubble } from "./message-bubble";
 import { MessageInput } from "./message-input";
-import { User as UserIcon, Fingerprint } from "@phosphor-icons/react";
+import { User as UserIcon, Fingerprint, CaretLeft } from "@phosphor-icons/react";
 import { Logo } from "@/components/ui/logo";
 
 interface ChatWindowProps {
@@ -15,9 +15,10 @@ interface ChatWindowProps {
   onNewMessage: (msg: Message) => void;
   incomingMessage: Message | null;
   onSend: (event: any) => void;
+  onBack?: () => void;
 }
 
-export function ChatWindow({ recipientId, onNewMessage, incomingMessage, onSend }: ChatWindowProps) {
+export function ChatWindow({ recipientId, onNewMessage, incomingMessage, onSend, onBack }: ChatWindowProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [recipient, setRecipient] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -87,14 +88,19 @@ export function ChatWindow({ recipientId, onNewMessage, incomingMessage, onSend 
 
   return (
     <div className="flex-1 flex flex-col h-full bg-[#fbfaf3]">
-      <header className="h-24 border-b border-espresso/5 px-10 flex items-center justify-between bg-white/40 backdrop-blur-xl">
-        <div className="flex items-center gap-5">
+      <header className="h-24 border-b border-espresso/5 px-6 md:px-10 flex items-center justify-between bg-white/40 backdrop-blur-xl">
+        <div className="flex items-center gap-3 md:gap-5">
+          <button 
+            onClick={onBack}
+            className="md:hidden p-2 -ml-2 text-espresso/40 hover:text-crimson transition-colors"
+          >
+            <CaretLeft size={24} weight="bold" />
+          </button>
           <div className="text-crimson">
             <Logo size={32} />
           </div>
           <div>
             <p className="font-bold text-lg tracking-tight text-espresso leading-none mb-2">Secure Channel</p>
-            
           </div>
         </div>
       </header>
