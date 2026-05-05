@@ -5,7 +5,8 @@ import {
   deriveWrappingKey, 
   wrapPrivateKey, 
   unwrapPrivateKey,
-  base64ToArrayBuffer
+  base64ToArrayBuffer,
+  arrayBufferToBase64
 } from "@/lib/crypto";
 
 const BASE_URL = "https://whisperbox.koyeb.app";
@@ -31,7 +32,7 @@ export const authService = {
         password,
         public_key: publicKeyBase64,
         wrapped_private_key: wrappedPrivateKey,
-        pbkdf2_salt: Buffer.from(salt).toString("base64"),
+        pbkdf2_salt: arrayBufferToBase64(salt),
       }),
     });
 
