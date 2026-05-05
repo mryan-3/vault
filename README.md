@@ -1,36 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Vault — End-to-End Encrypted Messaging
 
-## Getting Started
+Vault is a "Zero-Knowledge" messaging application built with Next.js and the Web Crypto API. It ensures that your private conversations remain private by encrypting everything in the browser before it ever touches the network.
 
-First, run the development server:
+## 1. Architecture Overview
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+Vault follows a **Blind Postman** architecture. The server (WhisperBox) is responsible for routing and storing data, but it never possesses the keys required to read the messages.
+
+```mermaid
+graph TD
+    subgraph "Client A (Sender)"
+        A_KeyGen[RSA Key Generation]
+        A_Wrap[Key Wrapping PBKDF2]
+        A_Enc[Hybrid Encryption AES-GCM]
+    end
+
+    subgraph "Backend (WhisperBox)"
+        DB[(Encrypted Blobs)]
+        Auth[JWT Auth]
+    end
+
+    subgraph "Client B (Recipient)"
+        B_Unwrap[Key Unwrapping]
+        B_Dec[Decryption]
+    end
+
+    A_Enc -->|Encrypted Payload| Auth
+    Auth --> DB
+    DB -->|Encrypted Payload| B_Dec
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 2. Cryptographic Implementation
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Hybrid Encryption Flow
+To balance security and performance, Vault uses a hybrid approach:
+1.  **Identity (Asymmetric):** Each user generates a 2048-bit **RSA-OAEP** key pair.
+2.  **Session (Symmetric):** For every message, a random 256-bit **AES-GCM** session key and a 96-bit **IV** are generated.
+3.  **The Double-Lock:**
+    *   The message is encrypted with the AES session key.
+    *   The session key is then encrypted with the **Recipient's RSA Public Key**.
+    *   The session key is also encrypted with the **Sender's RSA Public Key** (allowing the sender to view their own history).
+4.  **Payload:** The server receives only the ciphertext, the IV, and the encrypted keys.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Key Management & Wrapping
+Vault allows users to log in from different devices without compromising the Private Key:
+*   **PBKDF2 Derivation:** Upon registration, the user's master password is run through PBKDF2 with a random salt (100,000 iterations).
+*   **AES-GCM Wrapping:** The RSA Private Key is encrypted using the derived key.
+*   **Zero-Knowledge Storage:** The server stores the **Wrapped Private Key** and the **Salt**. Since the server never sees the master password, it can never "unwrap" the private key.
 
-## Learn More
+## 3. Security Trade-offs & Decisions
 
-To learn more about Next.js, take a look at the following resources:
+| Decision | Trade-off | Rationale |
+| :--- | :--- | :--- |
+| **AES-GCM Wrapping** | Increased Complexity | Replaced AES-KW to handle variable-length RSA keys without padding errors. |
+| **Session Persistence** | Memory usage | The raw private key stays only in RAM. Refresh survives via temporary session-storage of the password. |
+| **RSA-OAEP 2048** | Slower than ECC | Standardized compatibility with Web Crypto API across all modern browsers. |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 4. Known Limitations
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+*   **No Forward Secrecy:** If a user's RSA Private Key is compromised, all past messages encrypted with that key could be decrypted. (Future improvement: Double Ratchet algorithm).
+*   **Metadata Leakage:** The server knows *who* is talking to *whom* and *when*, even if it doesn't know *what* they are saying.
+*   **Password Dependence:** If a user loses their master password, their messages are permanently unrecoverable.
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
