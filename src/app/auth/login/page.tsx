@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ShieldCheck } from "@phosphor-icons/react";
+import { Logo } from "@/components/ui/logo";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -37,7 +37,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm space-y-12">
         <header className="space-y-4">
           <div className="flex items-center gap-2 text-crimson">
-            <ShieldCheck size={32} weight="fill" />
+            <Logo size={32} />
             <span className="text-xl font-bold tracking-tighter uppercase">Vault</span>
           </div>
           <h1 className="text-5xl font-bold tracking-tight leading-[0.9]">Welcome<br/>back</h1>

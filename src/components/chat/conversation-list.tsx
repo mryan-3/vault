@@ -12,31 +12,40 @@ interface ConversationListProps {
 
 export function ConversationList({ conversations, selectedId, onSelect }: ConversationListProps) {
   return (
-    <div className="space-y-1 mt-6">
-      <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-espresso/30 px-3 mb-3">
-        Conversations
+    <div className="space-y-2 mt-8">
+      <h2 className="text-[10px] font-black uppercase tracking-[0.25em] text-espresso/20 px-1 mb-4">
+        Archived Chats
       </h2>
       {conversations.length === 0 ? (
-        <p className="px-3 text-sm text-espresso/40 italic">No messages yet...</p>
+        <p className="px-1 text-sm text-espresso/30 italic">No whispers found.</p>
       ) : (
         conversations.map((c) => (
           <button
             key={c.user_id}
             onClick={() => onSelect(c.user_id)}
             className={cn(
-              "flex w-full items-center justify-between p-3 rounded-2xl transition-all",
+              "relative flex w-full items-start gap-4 p-3 transition-all group",
               selectedId === c.user_id 
-                ? "bg-white shadow-sm ring-1 ring-espresso/5" 
-                : "hover:bg-espresso/5"
+                ? "bg-espresso/5 rounded-2xl" 
+                : "hover:bg-espresso/[0.02] rounded-2xl"
             )}
           >
-            <div className="text-left">
-              <p className="font-bold tracking-tight text-espresso">{c.display_name}</p>
-              <p className="text-[10px] font-medium text-espresso/40">
-                {formatDistanceToNow(new Date(c.last_message_at), { addSuffix: true })}
+            <div className="flex-1 text-left">
+              <div className="flex items-center justify-between">
+                <p className={cn(
+                  "font-bold tracking-tight text-espresso transition-colors",
+                  selectedId === c.user_id ? "text-crimson" : "group-hover:text-espresso"
+                )}>
+                  {c.display_name}
+                </p>
+                <span className="text-[9px] font-black text-espresso/20">
+                  {formatDistanceToNow(new Date(c.last_message_at), { addSuffix: false })}
+                </span>
+              </div>
+              <p className="text-[10px] font-medium text-espresso/40 truncate pr-4 uppercase tracking-widest">
+                Active Session
               </p>
             </div>
-            {selectedId === c.user_id && <div className="h-1.5 w-1.5 rounded-full bg-crimson" />}
           </button>
         ))
       )}

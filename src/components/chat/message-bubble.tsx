@@ -5,7 +5,7 @@ import { Message } from "@/types/chat";
 import { decryptMessage } from "@/lib/crypto";
 import { useAuth } from "@/context/auth-context";
 import { format } from "date-fns";
-import { Lock, LockOpen } from "@phosphor-icons/react";
+import { Lock, Fingerprint } from "@phosphor-icons/react";
 
 interface MessageBubbleProps {
   message: Message;
@@ -34,25 +34,25 @@ export function MessageBubble({ message, isSelf }: MessageBubbleProps) {
   return (
     <div className={`flex flex-col ${isSelf ? "items-end" : "items-start"} space-y-1 group`}>
       <div className={`
-        relative max-w-[85%] px-5 py-3 
+        relative max-w-[85%] px-6 py-4 
         ${isSelf 
-          ? "bg-espresso text-cream rounded-2xl rounded-tr-none" 
-          : "bg-white text-espresso border border-espresso/5 rounded-2xl rounded-tl-none shadow-sm"}
+          ? "bg-espresso text-cream rounded-[2.5rem] rounded-tr-none shadow-lg shadow-espresso/5" 
+          : "bg-white text-espresso border border-espresso/5 rounded-[2.5rem] rounded-tl-none shadow-sm"}
       `}>
         {!decrypted ? (
-          <div className="flex items-center gap-2 opacity-40 italic text-sm">
-            <Lock size={14} />
-            <span>Decrypting...</span>
+          <div className="flex items-center gap-3 opacity-30 italic text-sm">
+            <div className="animate-pulse"><Lock size={16} weight="fill" /></div>
+            <span className="font-bold tracking-widest uppercase text-[10px]">Decoding...</span>
           </div>
         ) : (
-          <p className="text-[15px] leading-relaxed whitespace-pre-wrap">{decrypted}</p>
+          <p className="text-[15px] leading-relaxed whitespace-pre-wrap font-medium">{decrypted}</p>
         )}
       </div>
-      <div className="flex items-center gap-2 px-1">
-        <span className="text-[9px] font-bold uppercase tracking-widest text-espresso/30 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className={`flex items-center gap-2 px-4 transition-all duration-500 ${decrypted ? "opacity-100" : "opacity-0"}`}>
+        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-espresso/20">
           {format(new Date(message.created_at), "HH:mm")}
         </span>
-        {decrypted && <LockOpen size={10} className="text-forest/40" />}
+        <Fingerprint size={12} weight="bold" className={isSelf ? "text-crimson/30" : "text-forest/30"} />
       </div>
     </div>
   );

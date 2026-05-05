@@ -7,7 +7,8 @@ import { encryptMessage, importPublicKey } from "@/lib/crypto";
 import { useAuth } from "@/context/auth-context";
 import { MessageBubble } from "./message-bubble";
 import { MessageInput } from "./message-input";
-import { ShieldCheck, User as UserIcon } from "@phosphor-icons/react";
+import { User as UserIcon, Fingerprint } from "@phosphor-icons/react";
+import { Logo } from "@/components/ui/logo";
 
 interface ChatWindowProps {
   recipientId: string | null;
@@ -76,8 +77,8 @@ export function ChatWindow({ recipientId, onNewMessage, incomingMessage, onSend 
 
   if (!recipientId) return (
     <div className="flex-1 flex flex-col items-center justify-center bg-[#fbfaf3] p-12 text-center space-y-4">
-      <div className="h-16 w-16 rounded-full bg-espresso/5 flex items-center justify-center text-espresso/20">
-        <ShieldCheck size={40} weight="duotone" />
+      <div className="h-16 w-16 rounded-full bg-crimson/5 flex items-center justify-center text-crimson">
+        <Logo size={40} />
       </div>
       <h2 className="text-xl font-bold tracking-tight">Select a conversation</h2>
       <p className="max-w-xs text-sm text-espresso/40">Your messages are secured with end-to-end encryption. Only you and the recipient can read them.</p>
@@ -86,17 +87,14 @@ export function ChatWindow({ recipientId, onNewMessage, incomingMessage, onSend 
 
   return (
     <div className="flex-1 flex flex-col h-full bg-[#fbfaf3]">
-      <header className="h-20 border-b border-espresso/5 px-8 flex items-center justify-between bg-cream/50 backdrop-blur-md">
-        <div className="flex items-center gap-4">
-          <div className="h-10 w-10 rounded-full bg-espresso/5 flex items-center justify-center text-espresso/40">
-            <UserIcon size={20} weight="bold" />
+      <header className="h-24 border-b border-espresso/5 px-10 flex items-center justify-between bg-white/40 backdrop-blur-xl">
+        <div className="flex items-center gap-5">
+          <div className="text-crimson">
+            <Logo size={32} />
           </div>
           <div>
-            <p className="font-bold tracking-tight">Active Session</p>
-            <div className="flex items-center gap-1.5">
-              <div className="h-1.5 w-1.5 rounded-full bg-forest" />
-              <p className="text-[10px] font-bold uppercase tracking-widest text-forest">E2EE Secured</p>
-            </div>
+            <p className="font-bold text-lg tracking-tight text-espresso leading-none mb-2">Secure Channel</p>
+            
           </div>
         </div>
       </header>

@@ -11,6 +11,10 @@ const bricolage = Bricolage_Grotesque({
 export const metadata: Metadata = {
   title: "Vault — Secure E2EE Messaging",
   description: "End-to-End Encrypted messaging that stays private.",
+  icons: {
+    icon: "/icon.png",
+    apple: "/icon.png",
+  }
 };
 
 export default function RootLayout({
